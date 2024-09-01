@@ -1,0 +1,76 @@
+﻿@page "/"
+<AuthorizeView>
+    <Authorized>
+        <h1>Silahkan Upload Disini</h1>
+
+        @if (context.User.IsInRole("Admin"))
+        {
+            <SfFileManager TValue="FileManagerDirectoryContent">
+                <FileManagerAjaxSettings Url="/api/FileManager/FileOperations?Role=Admin"
+                                         DownloadUrl="/api/FileManager/Download"
+                                         GetImageUrl="/api/FileManager/GetImage"
+                                         UploadUrl="/api/FileManager/Upload">
+                </FileManagerAjaxSettings>
+                <FileManagerToolbarSettings Items="@toolbarItems"></FileManagerToolbarSettings>
+            </SfFileManager>
+        }
+        else if (context.User.IsInRole("Employee"))
+        {
+            <SfFileManager TValue="FileManagerDirectoryContent">
+                <FileManagerAjaxSettings Url="/api/Employee/FileOperations?Role=Employee"
+                                         DownloadUrl="/api/Employee/Download"
+                                         GetImageUrl="/api/Employee/GetImage"
+                                         UploadUrl="/api/Employee/Upload">
+                </FileManagerAjaxSettings>
+                <FileManagerToolbarSettings Items="@toolbarItems"></FileManagerToolbarSettings>
+            </SfFileManager>
+        }
+        else
+        {
+            <SfFileManager TValue="FileManagerDirectoryContent">
+                <FileManagerAjaxSettings Url="/api/FileManager/FileOperations?User=AuthorizedUser"
+                                         DownloadUrl="/api/FileManager/Download"
+                                         GetImageUrl="/api/FileManager/GetImage">
+                </FileManagerAjaxSettings>
+                <FileManagerToolbarSettings Items="@toolbarItems"></FileManagerToolbarSettings>
+            </SfFileManager>
+        }
+
+    </Authorized>
+    <NotAuthorized>
+        <h1>Authentication Failure!</h1>
+        <p>You're not signed in.</p>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    string[] toolbarItems = { };
+
+    // Inject NavigationManager to perform navigation
+    [Inject]
+    public NavigationManager NavigationManager { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+        var authState = await authenticationStateTask;
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            if (user.IsInRole("Admin"))
+            {
+                toolbarItems = new string[] { "NewFolder", "Upload", "Cut", "Copy", "Paste", "Delete", "Download", "Rename", "SortBy", "Refresh", "Selection", "View", "Details" };
+            }
+            else if (user.IsInRole("Employee"))
+            {
+                toolbarItems = new string[] { "NewFolder", "Upload", "Cut", "Copy", "Paste", "Delete", "Download", "Rename", "SortBy", "Refresh", "Selection", "View", "Details" };
+            }
+            else
+            {
+                toolbarItems = new string[] { "Download", "SortBy", "Refresh", "Selection", "View", "Details" };
+            }
+        }
+    }
+}
